@@ -233,7 +233,7 @@ def find_key_differences(combinations_of_sliced_ciphertexts):
             shift_value = -index_of_max_mioc % 26
 
             # Show all MIOCs with good values and generate system dependent on that
-            # print(f"MIOC: {max_mioc} z{int_to_subscript(pair_indexes[0] + 1)} - z{int_to_subscript(pair_indexes[1] + 1)} = {index_of_max_mioc} (mod 26) => z{int_to_subscript(pair_indexes[1] + 1)} = z{int_to_subscript(pair_indexes[0] + 1)} + {shift_value} (mod 26)" )
+            print(f"MIOC: {max_mioc} z{int_to_subscript(pair_indexes[0] + 1)} - z{int_to_subscript(pair_indexes[1] + 1)} = {index_of_max_mioc} (mod 26) => z{int_to_subscript(pair_indexes[1] + 1)} = z{int_to_subscript(pair_indexes[0] + 1)} + {shift_value} (mod 26)" )
 
             try: 
                 key_differences[pair_indexes[1]].append(
@@ -284,6 +284,7 @@ if __name__ == "__main__":
     # #the message has a coincidence index which decreases between 
     # 0.05 and 0.04 depending on the length of the key,
     # it decreases towards 0.04 the longer the key is.
+    print("Step 1:")
     if ciphertext['ioc'] < 0.05: 
         print("Calculated IOC:", ciphertext['ioc'], "Cipher is probably polyalphabetic")
     else:
@@ -297,7 +298,7 @@ if __name__ == "__main__":
 
     # could be used to search for more letters than trigrams, but in my case it doesnt exist
     # trigram_to_search = ciphertext['text'][:3]
-    
+    print("Step 2:")
     trigrams_to_search = find_trigrams(ciphertext)
 
     possible_key_lengths = set()
@@ -326,6 +327,8 @@ if __name__ == "__main__":
     # from that we get system from which we can derive all other keys by one key.
     # This essencially makes polyalphabetic cipher act as monoalphabetic and we can break it like monoalphabetic cipher
     # In this case it will be monoalphabetic shift cipher
+    print("Step 3:")
+
     for key_length in possible_key_lengths:
         combinations_of_sliced_ciphertexts = list(itertools.combinations(possible_sliced_ciphertexts[key_length], 2))
 
@@ -336,7 +339,7 @@ if __name__ == "__main__":
 
         key_indexes, is_whole_system_solvable = solve_key_difference_system(key_differences, key_length)
 
-        print(key_indexes)
+        # print(key_indexes)
         # Step 4 from relations we calculated we can generate all possible keys by shifting through all possible shifts (25) of them
         if is_whole_system_solvable:
             list_of_possible_keys = generate_all_possible_keys(key_indexes)
@@ -344,10 +347,13 @@ if __name__ == "__main__":
             print("Possible list of keys:", list_of_possible_keys)
 
             # Step 5 decrypt ciphertext with all possible keys and find letter distributions for all plaintexts
+            print("Step 5:")
             letter_distribution_errors_for_keys = decrypt_vigenere_with_all_keys_and_find_letter_distributions(list_of_possible_keys)
+            print("Letter distribution errors vs english letter distribution", letter_distribution_errors_for_keys)
 
 
             # Step 6 check for text which resembles english and do additional check vs english letter distribution
+            print("Step 6:")
             best_key = list_of_possible_keys[letter_distribution_errors_for_keys.index(min(letter_distribution_errors_for_keys))]
             solution_text = decrypt_vigenere(ciphertext_string, best_key)
 
